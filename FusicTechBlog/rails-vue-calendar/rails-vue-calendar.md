@@ -229,6 +229,8 @@ frontend:
 
 docker-compose build コマンドで dockerfile で定義したイメージのビルドを行って下さい。
 
+天気が良い。
+
 ```
 docker-compose build
 ```
