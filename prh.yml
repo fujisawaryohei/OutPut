@@ -1,0 +1,10 @@
+version: 1
+rules:
+  - expected: Google
+    specs:
+      - from: google
+        to: Google
+  - expected: Github
+    specs:
+      - from: github
+        to: Github
