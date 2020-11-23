@@ -6,10 +6,7 @@ jobs:
   build:
     docker: # Docker でステップを実行します
       - image: circleci/node:12.16.3
-        environment:
-          PGHOST: 127.0.0.1
-          PGUSER: postgres
-          RAILS_ENV: test
+    working_directory: "~/output"
     steps:
       - run:
           name: yarn lint ja
