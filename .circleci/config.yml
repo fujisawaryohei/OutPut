@@ -17,5 +17,5 @@ jobs:
             - ~/.cache/yarn
           key: OutPut-{{ checksum "yarn.lock" }}
       - run:
-          name: yarn rails-vue-calendar lint
-          command: yarn textlint ./FusicTechBlog/rails-vue-calendar/rails-vue-calendar.md --config ./.textlintrc --fix
+          name: Lint FusicTechblog/rails-vue-calendar/rails-vue-calendar.md
+          command: yarn textlint ./FusicTechBlog/rails-vue-calendar/rails-vue-calendar.md --config ./.textlintrc
