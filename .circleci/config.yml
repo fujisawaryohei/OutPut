@@ -6,8 +6,16 @@ jobs:
   build:
     docker: # Docker でステップを実行します
       - image: circleci/node:12.16.3
-    working_directory: "~/output"
+    working_directory: ~/repo
     steps:
+      - checkout
       - run:
-          name: yarn lint ja
+          name: yarn install
+          command: yarn install
+      - save_cache:
+          paths:
+            - ~/.cache/yarn
+          key: OutPut-{{ checksum "yarn.lock" }}
+      - run:
+          name: yarn rails-vue-calendar lint
           command: yarn textlint ./FusicTechBlog/rails-vue-calendar/rails-vue-calendar.md --config ./.textlintrc --fix
