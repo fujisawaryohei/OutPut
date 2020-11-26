@@ -241,7 +241,7 @@ docker-compose build
 
 ## 開発
 
-### Nuxt
+### Rails API 開発
 
 まずは Rails 側の方で Todo アプリの API を作っていきます。
 
