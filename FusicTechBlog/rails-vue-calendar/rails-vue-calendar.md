@@ -239,9 +239,9 @@ docker-compose build
 
 これで Nuxt の開発環境構築ができました。
 
-## 開発
+# 開発
 
-### Rails API 開発
+## Rails
 
 まずは Rails 側で Todo アプリの API を作っていきます。
 
@@ -408,7 +408,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"title":"title test", "con
 
 以上が Rails API の部分になります。
 
-### Nuxt
+## Nuxt
 
 今回は Nuxt のセットアップ時に Vuetify を選択しているため、予め Vuetify が動くようになっています。
 今回は、Vuetify を使用して下記のような画面を作成していきます。
