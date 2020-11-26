@@ -243,7 +243,7 @@ docker-compose build
 
 ### Rails API 開発
 
-まずは Rails 側の方で Todo アプリの API を作っていきます。
+まずは Rails 側で Todo アプリの API を作っていきます。
 
 下記のコマンドを実行して Todo モデルを生成してください。
 
@@ -405,3 +405,5 @@ curl -X POST -H "Content-Type: application/json" -d '{"title":"title test", "con
 ```
 {"success_message":"保存しました"}%
 ```
+
+以上が Rails API の部分になります。
