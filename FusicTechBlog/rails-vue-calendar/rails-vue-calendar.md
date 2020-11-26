@@ -407,3 +407,294 @@ curl -X POST -H "Content-Type: application/json" -d '{"title":"title test", "con
 ```
 
 以上が Rails API の部分になります。
+
+### Nuxt
+
+今回は Nuxt のセットアップ時に Vuetify を選択しているため、予め Vuetify が動くようになっています。
+今回は、Vuetify を使用して下記のような画面を作成していきます。
+
+![todo-app-nuxt](./images/todo-app-demo.gif "app-demo")
+
+まずはデフォルト画面を作成していきます。
+
+frontend/components/SideNav.ue
+
+```vue
+<template>
+  <v-navigation-drawer :value="drawer" app>
+    <v-list>
+      <v-list-item
+        v-for="(item, i) in items"
+        :key="i"
+        :to="item.to"
+        router
+        exact
+      >
+        <v-list-item-action>
+          <v-icon>{{ item.icon }}</v-icon>
+        </v-list-item-action>
+        <v-list-item-content>
+          <v-list-item-title v-text="item.title" />
+        </v-list-item-content>
+      </v-list-item>
+    </v-list>
+  </v-navigation-drawer>
+</template>
+<script>
+export default {
+  props: {
+    drawer: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    items: {
+      type: Array,
+      required: true,
+      default: () => {
+        return [];
+      },
+    },
+  },
+};
+</script>
+```
+
+上記はサイドナビゲーションメニューのコンポーネントになっています。
+[v-navigation-drawer](https://vuetifyjs.com/en/components/navigation-drawers/) という Vuetify のコンポーネントを使用しています。また drawer という data プロパティがサイドナビゲーションの開閉状態を管理しています。今回は、`default.vue`が親コンポーネントで`SideNav.vue`が子要素の関係に当たります。ですので、状態管理を親コンポーネントで行い、子コンポーネントに Props で渡しています。そして、子コンポーネント側で v-model を使用して状態を変更せずに、子コンポーネント側から親コンポーネントへ emit して親コンポーネントで状態を変更しています。
+
+frontend/layouts/default.vue
+
+```vue
+<template>
+  <v-app dark>
+    <side-nav-menu :drawer="drawer" :items="loggedInItems" />
+    <v-app-bar fixed app>
+      <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
+      <v-toolbar-title
+        style="cursor: pointer"
+        @click="$router.push('/')"
+        v-text="title"
+      />
+    </v-app-bar>
+    <v-main>
+      <v-container>
+        <nuxt />
+      </v-container>
+    </v-main>
+    <v-footer :absolute="!fixed" app>
+      <span>&copy; {{ new Date().getFullYear() }}</span>
+    </v-footer>
+  </v-app>
+</template>
+
+<script>
+import SideNavMenu from "../components/SideNav";
+export default {
+  components: {
+    "side-nav-menu": SideNavMenu,
+  },
+  data() {
+    return {
+      title: "Sample TodoApp",
+      drawer: false,
+      fixed: false,
+      loggedInItems: [
+        {
+          icon: "mdi-apps",
+          title: "Todo一覧",
+          to: "/",
+        },
+        {
+          icon: "mdi-apps",
+          title: "Todoを追加する",
+          to: "/todo",
+        },
+      ],
+    };
+  },
+};
+</script>
+```
+
+次にトップページ画面を作成していきます。
+
+frontend/components/TodoTop.vue
+
+```vue
+<template>
+  <v-row>
+    <v-col cols="7">
+      <v-btn class="ma-2" color="info" large @click="$router.push('/todo')">
+        新規作成
+      </v-btn>
+    </v-col>
+    <v-col cols="5">
+      <v-switch label="完了済み"></v-switch>
+    </v-col>
+  </v-row>
+</template>
+```
+
+frontend/components/TodoCard.vue
+
+```vue
+<template>
+  <todo />
+</template>
+<script>
+import Todo from "../components/Todo";
+export default {
+  components: {
+    todo: Todo,
+  },
+};
+</script>
+```
+
+frontend/pages/index.vue
+
+```vue
+<template>
+  <div>
+    <todo-top />
+    <todo-card />
+  </div>
+</template>
+<script>
+import TodoTop from "../components/TodoTop";
+import TodoCard from "../components/TodoCard";
+export default {
+  components: {
+    "todo-top": TodoTop,
+    "todo-card": TodoCard,
+  },
+};
+</script>
+```
+
+これにより localhost:3000 にアクセスすると先程のデモ画面が出てきます。
+
+最後に、フォーム画面を作成します。
+
+frontend/components/TodoForm.vue
+
+```vue
+<template>
+  <v-row>
+    <v-col cols="12">
+      <v-form>
+        <v-text-field
+          label="Todo"
+          :value="title"
+          @change="(value) => (title = value)"
+        >
+        </v-text-field>
+      </v-form>
+    </v-col>
+    <v-col cols="6">
+      <v-menu
+        ref="menu"
+        v-model="menu"
+        :close-on-content-click="false"
+        :return-value.sync="date"
+        transition="scale-transition"
+        offset-y
+        min-width="290px"
+        :light="true"
+      >
+        <template v-slot:activator="{ on }">
+          <v-text-field
+            v-model="date"
+            label="Picker in Date"
+            readonly
+            v-on="on"
+          ></v-text-field>
+        </template>
+        <v-date-picker v-model="date" no-title scrollable>
+          <v-spacer></v-spacer>
+          <v-btn text color="primary" @click="menu = false">Cancel</v-btn>
+          <v-btn text color="primary" @click="$refs.menu.save(date)">OK</v-btn>
+        </v-date-picker>
+      </v-menu>
+    </v-col>
+    <v-col cols="6">
+      <v-menu
+        ref="timeMenu"
+        v-model="menu2"
+        :close-on-content-click="false"
+        :return-value.sync="time"
+        transition="scale-transition"
+        offset-y
+        min-width="290px"
+        :light="true"
+      >
+        <template v-slot:activator="{ on }">
+          <v-text-field
+            v-model="time"
+            label="Picker in Time"
+            readonly
+            v-on="on"
+          ></v-text-field>
+        </template>
+        <v-time-picker v-model="time">
+          <v-spacer></v-spacer>
+          <v-btn text color="primary" @click="menu2 = false">Cancel</v-btn>
+          <v-btn text color="primary" @click="$refs.timeMenu.save(time)"
+            >OK</v-btn
+          >
+        </v-time-picker>
+      </v-menu>
+    </v-col>
+    <v-col cols="12">
+      <v-textarea v-model="description" color="teal">
+        <template v-slot:label>
+          <div>description <small>(optional)</small></div>
+        </template>
+      </v-textarea>
+    </v-col>
+    <v-col cols="12">
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="error"> 取り消す </v-btn>
+        <v-btn color="primary">送信</v-btn>
+      </v-card-actions>
+    </v-col>
+  </v-row>
+</template>
+<script>
+export default {
+  data() {
+    return {
+      title: "",
+      date: "",
+      time: "",
+      description: "",
+      menu: false,
+      menu2: false,
+    };
+  },
+};
+</script>
+```
+
+frontend/pages/todo.vue
+
+```vue
+<template>
+  <todo-form />
+</template>
+<script>
+import TodoForm from "../components/TodoForm";
+export default {
+  components: {
+    "todo-form": TodoForm,
+  },
+};
+</script>
+```
+
+以上で、デモ画面のような動きをする画面ができます。各 Vuetify のコンポーネントにつきましては、[この記事](https://qiita.com/popy1017/items/6f73033d9d0329d86af9) を参考にしています。
+ありがとうございました。
+
+以上で Nuxt の開発が完了となります。
