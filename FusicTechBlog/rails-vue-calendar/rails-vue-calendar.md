@@ -238,3 +238,170 @@ docker-compose build
 ![helloworl-rails](./images/NuxtHelloWorld.png "Qiita")
 
 これで Nuxt の開発環境構築ができました。
+
+## 開発
+
+### Nuxt
+
+まずは Rails 側の方で Todo アプリの API を作っていきます。
+
+下記のコマンドを実行して Todo モデルを生成してください。
+
+```
+bundle exec rails g model Todo
+```
+
+作成した Todo モデルに簡易的にバリデーションを設定しておきます（この辺は好みで設定してください）
+
+app/models/todo.rb
+
+```rb
+class Todo < ApplicationRecord
+  validates :title, presence: true, length: { maximum: 80 }
+  validates :content, presence: true
+end
+
+```
+
+今回、データベースの構成は簡易的なものとします。
+生成後、`db/migrate`以下にマイグレーションファイルが生成されますので、生成されたマイグレーションファイルを以下のように記述して下さい。
+
+```rb
+class CreateTodos < ActiveRecord::Migration[6.0]
+  def change
+    create_table :todos do |t|
+      t.string :title
+      t.text :content
+      t.boolean :is_done, default: false
+      t.date :date
+      t.time :time
+      t.timestamps
+    end
+  end
+end
+```
+
+記述したら、下記のコマンドでテーブルを作成します。
+
+```
+docker-compose exec backend bundle exec rails db:migrate
+```
+
+データベースが作成できましたので、次にコントローラーを作成していきます。
+
+```
+bundle exec rails g controller api/v1/todos
+```
+
+作成したコントローラーに CRUD 処理を追加していきます。
+
+app/controllers/api/v1/todos_controller.rb
+
+```rb
+class Api::V1::TodosController < ApplicationController
+  def index
+    todos = Todo.all
+    render json: todos
+  end
+
+  def show
+    todo = Todo.find_by(id: params[:id])
+    unless todo.nil?
+      render json: todo
+    else
+      render json: { error_message: 'Not Found'}
+    end
+  end
+
+  def create
+    todo = Todo.new(set_params)
+    if todo.save
+      render json: { success_message: '保存しました' }
+    else
+      render json: todo.errors.messages
+    end
+  end
+
+  def update
+    todo = Todo.find(params[:id])
+    if todo.update(set_params)
+      render json: { success_message: '更新しました' }
+    else
+      render json: todo.errors.messages
+    end
+  end
+
+  def destroy
+    todo = Todo.find(params[:id])
+    todo.destroy
+    render json: { success_message: '削除しました' }
+  end
+
+  private
+  def set_params
+    params.require(:todo).permit(:title, :content, :is_done, :date, :time)
+  end
+end
+
+```
+
+次にルーティングを設定します。
+
+config/routes.rb
+
+```rb
+Rails.application.routes.draw do
+  namespace :api do
+    namespace :v1 do
+      resources :todos
+    end
+  end
+end
+```
+
+最後に、`rack-cors`という gem をインストールして、CORS の設定します。
+
+Gemfile
+
+```rb
+gem 'rack-cors'
+```
+
+```
+bundle install
+```
+
+インストール後に config/initializers/cors.rb で origins を`localhost:3000`に設定してください。
+
+config/initializers/cors.rb
+
+```rb
+# Be sure to restart your server when you modify this file.
+
+# Avoid CORS issues when API is called from the frontend app.
+# Handle Cross-Origin Resource Sharing (CORS) in order to accept cross-origin AJAX requests.
+
+# Read more: https://github.com/cyu/rack-cors
+
+Rails.application.config.middleware.insert_before 0, Rack::Cors do
+  allow do
+    origins 'http://localhost:3000'
+    resource '*',
+      headers: :any,
+      methods: [:get, :post, :put, :patch, :delete, :options, :head]
+  end
+end
+
+```
+
+ここまで完了しましたら一度ターミナルで curl してみましょう。
+
+```shell
+curl -X POST -H "Content-Type: application/json" -d '{"title":"title test", "content":"content test", "is_done": false}' localhost:4000/api/v1/todos
+```
+
+下記のようなレスポンスが来ているか確認してください。
+
+```
+{"success_message":"保存しました"}%
+```
