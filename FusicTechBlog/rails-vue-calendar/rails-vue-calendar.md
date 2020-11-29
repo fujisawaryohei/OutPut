@@ -1,4 +1,4 @@
-# Rails + Nuxt で作成した Todo アプリを AWS Fargate にデプロイしてみた
+# Rails + Nuxt を使用して Todo アプリを Docker Compose で開発する
 
 ## 今回のファイル構成
 
