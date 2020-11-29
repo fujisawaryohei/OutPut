@@ -413,7 +413,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"title":"title test", "con
 今回は Nuxt のセットアップ時に Vuetify を選択しているため、予め Vuetify が動くようになっています。
 今回は、Vuetify を使用して下記のような画面を作成していきます。
 
-![todo-app-nuxt](./images/todo-app-demo.gif "app-demo")
+![todo-app-nuxt](./images/todo-app-demo1.gif "app-demo")
 
 まずはデフォルト画面を作成していきます。
 
@@ -473,7 +473,7 @@ frontend/layouts/default.vue
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <v-toolbar-title
         style="cursor: pointer"
-        @click="$router.push('/')"
+        @click="$router.push('/todos')"
         v-text="title"
       />
     </v-app-bar>
@@ -503,7 +503,7 @@ export default {
         {
           icon: "mdi-apps",
           title: "Todo一覧",
-          to: "/",
+          to: "/todos",
         },
         {
           icon: "mdi-apps",
@@ -530,52 +530,146 @@ frontend/components/TodoTop.vue
       </v-btn>
     </v-col>
     <v-col cols="5">
-      <v-switch label="完了済み"></v-switch>
+      <v-switch label="完了済み" @change="switchTaskStatus"></v-switch>
     </v-col>
   </v-row>
 </template>
+<script>
+export default {
+  methods: {
+    switchTaskStatus(value) {
+      this.$emit("switchTaskStatus", value);
+    },
+  },
+};
+</script>
 ```
 
 frontend/components/TodoCard.vue
 
 ```vue
 <template>
-  <todo />
+  <v-row>
+    <v-col cols="12">
+      <v-card elevation="2" outlined :light="true">
+        <v-card-title>{{ todoTitle }}</v-card-title>
+        <v-card-subtitle>{{ todoDate }} {{ todoTime }}に開始</v-card-subtitle>
+        <v-card-text>{{ todoContent }}</v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn depressed color="error" @click="remove()"> 削除する </v-btn>
+          <v-btn depressed color="info" @click="toEdit()"> 編集する </v-btn>
+          <v-btn v-if="!todo.is_done" depressed color="primary" @click="done()">
+            完了
+          </v-btn>
+          <v-btn v-else depressed color="warning" @click="back()">未完了</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-col>
+  </v-row>
 </template>
 <script>
-import Todo from "../components/Todo";
 export default {
-  components: {
-    todo: Todo,
+  props: {
+    todo: {
+      type: Object,
+      required: true,
+      default: () => [],
+    },
+  },
+  computed: {
+    todoTitle() {
+      return this.todo.title;
+    },
+    todoContent() {
+      return this.todo.content;
+    },
+    todoDate() {
+      return this.todo.date;
+    },
+    todoTime() {
+      return this.todo.time;
+    },
+  },
+  methods: {
+    toEdit() {
+      this.$router.push(`/todos/${this.todo.id}`);
+    },
+    async done() {
+      await this.$axios.$patch(`/api/v1/todos/${this.todo.id}`, {
+        is_done: true,
+      });
+      // TODO: 環境変数管理にシフト
+      window.location.href = `http://localhost:3000/todos`;
+    },
+    async back() {
+      await this.$axios.$patch(`/api/v1/todos/${this.todo.id}`, {
+        is_done: false,
+      });
+      // TODO: 環境変数管理にシフト
+      window.location.href = `http://localhost:3000/todos`;
+    },
+    async remove() {
+      const confirmation = window.confirm("本当に削除しますか？");
+      if (confirmation) {
+        await this.$axios.$delete(`/api/v1/todos/${this.todo.id}`);
+        // TODO: 環境変数管理にシフト
+        window.location.href = `http://localhost:3000/todos`;
+      }
+    },
   },
 };
 </script>
 ```
 
-frontend/pages/index.vue
+今回、フロントエンドでは`/todos`にアクセスすると Todo 一覧画面を返すようにするため、pages ディレクトリ以下で、todos ディレクトリを作成してください。
+
+frontend/pages/todos/index.vue
 
 ```vue
 <template>
   <div>
-    <todo-top />
-    <todo-card />
+    <todo-top @switchTaskStatus="switchTaskStatus" />
+    <todo-card v-for="todo in todoData" :key="todo.id" :todo="todo" />
   </div>
 </template>
 <script>
-import TodoTop from "../components/TodoTop";
-import TodoCard from "../components/TodoCard";
+import TodoTop from "../../components/TodoTop";
+import TodoCard from "../../components/TodoCard";
 export default {
   components: {
     "todo-top": TodoTop,
     "todo-card": TodoCard,
   },
+  data() {
+    return {
+      initData: [],
+      todoData: [],
+      isDone: false,
+    };
+  },
+  async created() {
+    await this.$axios.$get("/api/v1/todos").then((res) => {
+      this.initData = res;
+      this.todoData = res.filter((data) => {
+        return data.is_done === false;
+      });
+    });
+  },
+  methods: {
+    switchTaskStatus(value) {
+      this.todoData = this.initData.filter((data) => {
+        return data.is_done === value;
+      });
+    },
+  },
 };
 </script>
 ```
 
-これにより localhost:3000 にアクセスすると先程のデモ画面が出てきます。
+これにより localhost:3000/todos にアクセスすると先程のデモ画面が出てきます。
 
-最後に、フォーム画面を作成します。
+次に、フォーム画面のコンポーネントを作成します。
 
 frontend/components/TodoForm.vue
 
@@ -656,14 +750,21 @@ frontend/components/TodoForm.vue
     <v-col cols="12">
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="error"> 取り消す </v-btn>
-        <v-btn color="primary">送信</v-btn>
+        <v-btn color="error" @click="remove()"> 取り消す </v-btn>
+        <v-btn color="primary" @click="submit()">送信</v-btn>
       </v-card-actions>
     </v-col>
   </v-row>
 </template>
 <script>
 export default {
+  props: {
+    todoId: {
+      type: String,
+      required: false,
+      default: "",
+    },
+  },
   data() {
     return {
       title: "",
@@ -674,9 +775,48 @@ export default {
       menu2: false,
     };
   },
+  async created() {
+    if (this.todoId) {
+      await this.$axios.$get(`api/v1/todos/${this.todoId}`).then((res) => {
+        this.title = res.title;
+        this.date = res.date;
+        this.time = res.time;
+        this.description = res.content;
+      });
+    }
+  },
+  methods: {
+    submit() {
+      const params = {
+        title: this.title,
+        content: this.description,
+        date: this.date,
+        time: this.time,
+      };
+      this.todoId ? this.update(params, this.todoId) : this.create(params);
+    },
+    remove() {
+      this.title = "";
+      this.description = "";
+      this.date = "";
+      this.time = "";
+    },
+    create(params) {
+      this.$axios.post("/api/v1/todos", params).then((res) => {
+        this.$router.push("/todos");
+      });
+    },
+    update(params, id) {
+      this.$axios.patch(`/api/v1/todos/${id}`, params).then((res) => {
+        this.$router.push("/todos");
+      });
+    },
+  },
 };
 </script>
 ```
+
+このフォーム画面のコンポーネントは、Todo 作成画面と Todo 編集画面で使用します。Todo 作成画面として、`frontend/pages/todo.vue`、Todo 編集画面として`frontend/pages/todos/_id.vue`を作成してください。
 
 frontend/pages/todo.vue
 
@@ -686,6 +826,23 @@ frontend/pages/todo.vue
 </template>
 <script>
 import TodoForm from "../components/TodoForm";
+export default {
+  components: {
+    "todo-form": TodoForm,
+  },
+};
+</script>
+```
+
+frontend/pages/\_id.vue
+
+```vue
+<template>
+  <!-- todoのidを子コンポーネントに渡す -->
+  <todo-form :todo-id="$route.params.id" />
+</template>
+<script>
+import TodoForm from "../../components/TodoForm";
 export default {
   components: {
     "todo-form": TodoForm,
