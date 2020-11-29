@@ -1,4 +1,4 @@
-# Rails Nuxt で作成したカレンダー Todo アプリを AWS Fargate にデプロイしてみた
+# Rails + Nuxt で作成した Todo アプリを AWS Fargate にデプロイしてみた
 
 ## 今回のファイル構成
 
@@ -259,8 +259,9 @@ app/models/todo.rb
 class Todo < ApplicationRecord
   validates :title, presence: true, length: { maximum: 80 }
   validates :content, presence: true
+  validates :date, presence: true
+  validates :time, presence: true
 end
-
 ```
 
 今回、データベースの構成は簡易的なものとします。
@@ -287,7 +288,41 @@ end
 docker-compose exec backend bundle exec rails db:migrate
 ```
 
-データベースが作成できましたので、次にコントローラーを作成していきます。
+データベースが作成できました。
+また、今回作成した時刻を保持する time カラムは、そのままではデフォルトで日付も返ってしまうため、time 型を時刻にフォーマットして JSON を返すようにします。
+
+[ActiveModelSerializer](https://github.com/rails-api/active_model_serializers)という Gem を使用して、時刻にフォーマットして JSON へシリアライズするようにします。
+
+```rb
+gem 'active_model_serializers', require: true
+```
+
+```
+bundle install
+```
+
+ActiveModelSerializer のインストールが完了したら、下記のコマンドを実行します。
+
+```
+bundle exec rails g serializer Todo
+```
+
+`todo_serializer.rb`ファイルが`app/serializers`ディレクトリ以下に作成されるので下記の処理を追加します。
+
+app/serializers/todo_serializer.rb
+
+```rb
+class TodoSerializer < ActiveModel::Serializer
+  attributes :id, :title, :content, :is_done, :date
+  attribute :time do
+    unless object.time.nil?
+      object.time.strftime("%R")
+    end
+  end
+end
+```
+
+次にコントローラーを作成していきます。
 
 ```
 bundle exec rails g controller api/v1/todos
@@ -300,8 +335,8 @@ app/controllers/api/v1/todos_controller.rb
 ```rb
 class Api::V1::TodosController < ApplicationController
   def index
-    todos = Todo.all
-    render json: todos
+    todos = Todo.all.order(created_at: :desc)
+    render json: todos, each_serializer: TodoSerializer
   end
 
   def show
