@@ -1,11 +1,15 @@
 # Rails + Nuxt を使用して Todo アプリを Docker Compose で開発する
 
+## 今回作成したアプリ
+
+![todo-app-nuxt](./images/todo-app-demo1.gif "app-demo")
+
 ## 今回のファイル構成
 
 Rails プロジェクトの中にフロントエンドディレクトリを作成してそこに Nuxt プロジェクトを展開する形にします。
 
 ```
-├── todo-calendar
+├── todo-app
   ├── frontend
   └── docker-compose.yml
 ```
@@ -245,6 +249,8 @@ docker-compose build
 
 まずは Rails 側で Todo アプリの API を作っていきます。
 
+### Model 生成
+
 下記のコマンドを実行して Todo モデルを生成してください。
 
 ```
@@ -263,6 +269,8 @@ class Todo < ApplicationRecord
   validates :time, presence: true
 end
 ```
+
+### データベース作成
 
 今回、データベースの構成は簡易的なものとします。
 生成後、`db/migrate`以下にマイグレーションファイルが生成されますので、生成されたマイグレーションファイルを以下のように記述して下さい。
@@ -289,7 +297,10 @@ docker-compose exec backend bundle exec rails db:migrate
 ```
 
 データベースが作成できました。
-また、今回作成した時刻を保持する time カラムは、そのままではデフォルトで日付も返ってしまうため、time 型を時刻にフォーマットして JSON を返すようにします。
+
+### ActiveModelSerializer の導入
+
+今回作成した時刻を保持する time カラムは、そのままではデフォルトで日付も返ってしまうため、time 型を時刻にフォーマットして JSON を返すようにします。
 
 [ActiveModelSerializer](https://github.com/rails-api/active_model_serializers)という Gem を使用して、時刻にフォーマットして JSON へシリアライズするようにします。
 
@@ -321,6 +332,8 @@ class TodoSerializer < ActiveModel::Serializer
   end
 end
 ```
+
+### Controller の作成
 
 次にコントローラーを作成していきます。
 
@@ -380,6 +393,8 @@ end
 
 ```
 
+### ルーティングの追加
+
 次にルーティングを設定します。
 
 config/routes.rb
@@ -394,6 +409,8 @@ Rails.application.routes.draw do
 end
 ```
 
+### CORS 設定
+
 最後に、`rack-cors`という gem をインストールして、CORS の設定します。
 
 Gemfile
@@ -406,7 +423,14 @@ gem 'rack-cors'
 bundle install
 ```
 
-インストール後に config/initializers/cors.rb で origins を`localhost:3000`に設定してください。
+インストールが完了しましたら、`config/application.rb`に下記の処理を追記してください。
+コンテナ起動時やイメージのビルド時に`CORS_ALLOWED_ORIGINS`という環境変数に本番環境や開発環境で使用するフロントエンド側のオリジンを渡すようにしておきます。
+
+```rb
+config.x.cors_allowed_origins = ENV.fetch('CORS_ALLOWED_ORIGINS', 'localhost:3000')
+```
+
+次に、`config/initializers/cors.rb` に下記を追記してください。
 
 config/initializers/cors.rb
 
@@ -420,7 +444,7 @@ config/initializers/cors.rb
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins 'http://localhost:3000'
+    origins Rails.application.config.x.cors_allowed_origins
     resource '*',
       headers: :any,
       methods: [:get, :post, :put, :patch, :delete, :options, :head]
@@ -432,7 +456,7 @@ end
 ここまで完了しましたら一度ターミナルで curl してみましょう。
 
 ```shell
-curl -X POST -H "Content-Type: application/json" -d '{"title":"title test", "content":"content test", "is_done": false}' localhost:4000/api/v1/todos
+curl localhost:4000/api/v1/todos
 ```
 
 下記のようなレスポンスが来ているか確認してください。
@@ -445,10 +469,93 @@ curl -X POST -H "Content-Type: application/json" -d '{"title":"title test", "con
 
 ## Nuxt
 
-今回は Nuxt のセットアップ時に Vuetify を選択しているため、予め Vuetify が動くようになっています。
-今回は、Vuetify を使用して下記のような画面を作成していきます。
+### nuxt.config.js
 
-![todo-app-nuxt](./images/todo-app-demo1.gif "app-demo")
+まずは、下記の`nuxt.config.js` を参照してください。
+今回、追記した部分は`env`プロパティと`axios`プロパティです。
+`env`プロパティでは、Nuxt のバックエンドとフロントエンドで共有する環境変数を定義できます。
+Docker-compose で起動時に渡している、`TODO_APP_FRONT_HOST`と、`TODO_APP_API_HOST`を process.env で参照して`env`プロパティに渡しています。
+
+```js
+import colors from "vuetify/es5/util/colors";
+
+export default {
+  // Disable server-side rendering (https://go.nuxtjs.dev/ssr-mode)
+  ssr: false,
+  telemetry: false,
+  // Global page headers (https://go.nuxtjs.dev/config-head)
+  head: {
+    titleTemplate: "%s - frontend",
+    title: "frontend",
+    meta: [
+      { charset: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { hid: "description", name: "description", content: "" },
+    ],
+    link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
+  },
+
+  // definition fronend env
+  env: {
+    hostUrl: process.env.TODO_APP_FRONT_HOST,
+    apiUrl: process.env.TODO_APP_API_HOST,
+  },
+
+  // Global CSS (https://go.nuxtjs.dev/config-css)
+  css: [],
+
+  // Plugins to run before rendering page (https://go.nuxtjs.dev/config-plugins)
+  plugins: [],
+
+  // Auto import components (https://go.nuxtjs.dev/config-components)
+  components: true,
+
+  // Modules for dev and build (recommended) (https://go.nuxtjs.dev/config-modules)
+  buildModules: [
+    // https://go.nuxtjs.dev/eslint
+    "@nuxtjs/eslint-module",
+    // https://go.nuxtjs.dev/vuetify
+    "@nuxtjs/vuetify",
+  ],
+
+  // Modules (https://go.nuxtjs.dev/config-modules)
+  modules: [
+    // https://go.nuxtjs.dev/axios
+    "@nuxtjs/axios",
+  ],
+
+  // Axios module configuration (https://go.nuxtjs.dev/config-axios)s
+  axios: {
+    baseURL: process.env.TODO_APP_API_HOST,
+  },
+
+  // Vuetify module configuration (https://go.nuxtjs.dev/config-vuetify)
+  vuetify: {
+    customVariables: ["~/assets/variables.scss"],
+    theme: {
+      dark: true,
+      themes: {
+        dark: {
+          primary: colors.blue.darken2,
+          accent: colors.grey.darken3,
+          secondary: colors.amber.darken3,
+          info: colors.teal.lighten1,
+          warning: colors.amber.base,
+          error: colors.deepOrange.accent4,
+          success: colors.green.accent3,
+        },
+      },
+    },
+  },
+
+  // Build Configuration (https://go.nuxtjs.dev/config-build)
+  build: {},
+};
+```
+
+### デフォルト画面の作成
+
+今回は Nuxt のセットアップ時に Vuetify を選択しているため、予め Vuetify が動くようになっています。
 
 まずはデフォルト画面を作成していきます。
 
@@ -551,6 +658,8 @@ export default {
 };
 </script>
 ```
+
+### トップページの作成
 
 次にトップページ画面を作成していきます。
 
@@ -703,6 +812,8 @@ export default {
 ```
 
 これにより localhost:3000/todos にアクセスすると先程のデモ画面が出てきます。
+
+### フォーム画面作成
 
 次に、フォーム画面のコンポーネントを作成します。
 
@@ -887,6 +998,8 @@ export default {
 ```
 
 以上で、デモ画面のような動きをする画面ができます。各 Vuetify のコンポーネントにつきましては、[この記事](https://qiita.com/popy1017/items/6f73033d9d0329d86af9) を参考にしています。
+
 ありがとうございました。
 
-以上で Nuxt の開発が完了となります。
+次回は、今回作成したアプリケーションを Fargate でデプロイする方法について Advent Calendar で書いていきます。
+宜しくおねがいします。
