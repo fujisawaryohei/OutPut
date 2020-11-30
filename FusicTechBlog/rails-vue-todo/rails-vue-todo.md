@@ -28,7 +28,7 @@ Rails プロジェクトの中にフロントエンドディレクトリを作�
 
 ### Rails new
 
-まずは todo-calendar ディレクトリを作成して作成したディレクトリ以下で下記のコマンドを実行します。
+まずは todo-app ディレクトリを作成して作成したディレクトリ以下で下記のコマンドを実行します。
 
 ```
 bundle init
@@ -55,7 +55,7 @@ bundle exec rails new . --api --database=postgresql
 その後作成された Rails プロジェクトで dockerfile を作成します。  
 作成されたら.gitignore ファイルに下記を追記してインストールしたライブラリを Git の管理対象外にしてください。
 
-todo-calendar/.gitignore
+todo-app/.gitignore
 
 ```
 /vendor
@@ -66,7 +66,7 @@ todo-calendar/.gitignore
 今回の Rails における Docker の運用方針は Gemfile を参照して、予めイメージビルド時に Gem をンストールしておきます。  
 その後、`docker-compose up`コマンドでコンテナ起動時に随時追加した差分の Gem があれば bundle install するといった方針にします。
 
-todo-calendar/dockerfile
+todo-app/dockerfile
 
 ```docker
 FROM ruby:2.7.0
@@ -101,7 +101,7 @@ version: "3"
 
 services:
   db:
-    container_name: todo-calendar-db
+    container_name: todo-app-db
     image: postgres:11.5
     environment:
       TZ: Asia/Tokyo
@@ -115,9 +115,9 @@ services:
         ipv4_address: '172.10.0.2'
 
   backend:
-    container_name: todo-calendar-backend
+    container_name: todo-app-backend
     build: .
-    image: todo-calendar-backend
+    image: todo-app-backend
     command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
     tty: true
     stdin_open: true
@@ -178,7 +178,7 @@ docker-compose exec backend bin/rails db:create
 ### create-nuxt-app
 
 今回は、[create-nuxt-app](https://github.com/nuxt/create-nuxt-app) コマンドを使用して Nuxt のプロジェクトを作成します。  
-Rails のプロジェクト内, todo-calendar 下記のコマンドを実行してください。
+Rails のプロジェクト内, todo-app ディレクトリで下記のコマンドを実行してください。
 
 ```
 yarn create nuxt-app frontend
@@ -208,7 +208,7 @@ yarn create nuxt-app frontend
 
 Nuxt プロジェクト作成後、作成された Nuxt プロジェクト内で Dockerfile を作成します。
 
-todo-calendar/frontend/dockerfile
+todo-app/frontend/dockerfile
 
 ```docker
 FROM node:12.16.3
@@ -229,9 +229,9 @@ RUN yarn install
 
 ```docker
 frontend:
-  container_name: todo-calendar-frontend
+  container_name: todo-app-frontend
   build: ./frontend/
-  image: todo-calendar-frontend
+  image: todo-app-frontend
   environment:
     - NODE_ENV=development
     - NUXT_HOST=0.0.0.0
