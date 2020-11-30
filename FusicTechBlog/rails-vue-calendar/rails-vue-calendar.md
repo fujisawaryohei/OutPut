@@ -34,7 +34,7 @@ Rails プロジェクトの中にフロントエンドディレクトリを作�
 bundle init
 ```
 
-作成された Gemfile で`rails`の部分のコメントアウトします。
+作成された Gemfile で`rails`の部分のコメントアウトをします。
 
 ```rb
 # frozen_string_literal: true
@@ -46,7 +46,7 @@ git_source(:github) {|repo_name| "https://github.com/#{repo_name}" }
 gem "rails"
 ```
 
-作成したディレクトリ直下で下記のコマンドで Rails プロジェクトを展開します。今回は API モードでの開発になるので`--api`を忘れないように。
+作成したディレクトリ直下で下記のコマンドで Rails プロジェクトを展開します。今回は API モードでの開発になるので`--api`をオプションとして指定します。
 
 ```
 bundle exec rails new . --api --database=postgresql
@@ -482,7 +482,7 @@ end
 ここまで完了しましたら一度ターミナルで curl してみましょう。
 
 ```shell
-curl localhost:4000/api/v1/todos
+curl -X POST -H "Content-Type: application/json" -d '{"title":"のぎおび配信を見る","content":"今日は遠藤さくらちゃんが担当","is_done":false,"date":"2020-11-30","time":"1:00"}' localhost:4000/api/v1/todos
 ```
 
 下記のようなレスポンスが来ているか確認してください。
