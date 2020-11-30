@@ -15,6 +15,9 @@ Rails プロジェクトの中にフロントエンドディレクトリを作�
   └── docker-compose.yml
 ```
 
+また、下記に今回のプロジェクトのリポジトリも共有しておきます。
+https://github.com/fujisawaryohei/rails-nuxt-todo-app
+
 ## 今回の流れ
 
 1. Rails と Nuxt の開発用イメージを作成
