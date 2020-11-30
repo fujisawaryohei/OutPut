@@ -116,8 +116,16 @@ services:
     stdin_open: true
     volumes:
       - ./:/app:cached
+      - bundle_data:/usr/local/bundle:cached
+      - /app/vendor
+      - /app/tmp
+      - /app/log
+      - /app/.git
     environment:
-      TZ: Asia/Tokyo
+      - TZ=Asia/Tokyo
+      - TODO_APP_API_HOST=http://localhost:4000
+      - TODO_APP_FRONT_HOST=http://localhost:3000
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000
     depends_on:
       - db
     ports:
@@ -218,6 +226,12 @@ frontend:
   container_name: todo-calendar-frontend
   build: ./frontend/
   image: todo-calendar-frontend
+  environment:
+    - NODE_ENV=development
+    - NUXT_HOST=0.0.0.0
+    - NUXT_PORT=3000
+    - TODO_APP_API_HOST=http://localhost:4000
+    - TODO_APP_FRONT_HOST=http://localhost:3000
   volumes:
     - ./frontend:/app:cached
   ports:
