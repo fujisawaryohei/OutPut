@@ -769,22 +769,19 @@ export default {
       await this.$axios.$patch(`/api/v1/todos/${this.todo.id}`, {
         is_done: true,
       });
-      // TODO: 環境変数管理にシフト
-      window.location.href = `http://localhost:3000/todos`;
+      window.location.href = process.env.hostUrl + "/todos";
     },
     async back() {
       await this.$axios.$patch(`/api/v1/todos/${this.todo.id}`, {
         is_done: false,
       });
-      // TODO: 環境変数管理にシフト
-      window.location.href = `http://localhost:3000/todos`;
+      window.location.href = process.env.hostUrl + "/todos";
     },
     async remove() {
       const confirmation = window.confirm("本当に削除しますか？");
       if (confirmation) {
         await this.$axios.$delete(`/api/v1/todos/${this.todo.id}`);
-        // TODO: 環境変数管理にシフト
-        window.location.href = `http://localhost:3000/todos`;
+        window.location.href = process.env.hostUrl + "/todos";
       }
     },
   },
