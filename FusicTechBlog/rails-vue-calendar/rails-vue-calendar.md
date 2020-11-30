@@ -328,7 +328,7 @@ docker-compose exec backend bundle exec rails db:migrate
 
 今回作成した時刻を保持する time カラムは、そのままではデフォルトで日付も返ってしまうため、time 型を時刻にフォーマットして JSON を返すようにします。
 
-[ActiveModelSerializer](https://github.com/rails-api/active_model_serializers)という Gem を使用して、時刻にフォーマットして JSON へシリアライズするようにします。
+[ActiveModelSerializer](https://github.com/rails-api/active_model_serializers)という Gem を使用して、時刻にフォーマットして Todo モデルを JSON へシリアライズするようにします。
 
 ```rb
 gem 'active_model_serializers', require: true
