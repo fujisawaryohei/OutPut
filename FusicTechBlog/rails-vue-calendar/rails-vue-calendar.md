@@ -256,6 +256,12 @@ docker-compose build コマンドで dockerfile で定義したイメージの�
 docker-compose build
 ```
 
+では、コンテナを再度起動してみましょう。
+
+```
+docker-compose up
+```
+
 現在ポート 3000 でポートフォワーディングしているため、localhost:3000 にアクセスすると下記のような画面になります。 以上で Nuxt 環境構築になります。
 
 ![helloworl-rails](./images/NuxtHelloWorld.png "Qiita")
