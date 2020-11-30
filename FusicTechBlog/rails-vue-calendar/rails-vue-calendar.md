@@ -1,4 +1,4 @@
-# Rails + Nuxt を使用して Todo アプリを Docker Compose で開発する
+# Rails + Nuxt で Todo アプリを Docker 環境 で開発する
 
 ## 今回作成したアプリ
 
