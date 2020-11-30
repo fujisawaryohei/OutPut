@@ -2,8 +2,8 @@
 
 ## 今回作成したアプリ
 
-![todo-app-nuxt](./images/todo-app-demo1.gif "app-demo1")
-![todo-app-nuxt](./images/todo-app-demo2.gif "app-demo2")
+![todo-app-nuxt](./images/2020-11-30-todo-app-demo1.gif "app-demo1")
+![todo-app-nuxt](./images/2020-11-30-todo-app-demo2.gif "app-demo2")
 
 ## 今回のファイル構成
 
@@ -175,7 +175,7 @@ docker-compose exec backend bin/rails db:create
 現在ポート 5000 でポートフォワーディングしているため、`localhost:5000`にアクセスすると下記のような画面になります。
 これで Rails の開発環境構築ができました。
 
-![helloworl-rails](./images/RailsHelloWorld.png "Qiita")
+![helloworl-rails](./images/2020-11-30-RailsHelloWorld.png "Qiita")
 
 ## Nuxt の環境構築
 
@@ -269,7 +269,7 @@ docker-compose up
 
 現在ポート 3000 でポートフォワーディングしているため、localhost:3000 にアクセスすると下記のような画面になります。 以上で Nuxt 環境構築になります。
 
-![helloworl-rails](./images/NuxtHelloWorld.png "Qiita")
+![helloworl-rails](./images/2020-11-30-NuxtHelloWorld.png "Qiita")
 
 これで Nuxt の開発環境構築ができました。
 
