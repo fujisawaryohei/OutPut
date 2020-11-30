@@ -16,6 +16,7 @@ Rails プロジェクトの中にフロントエンドディレクトリを作�
 ```
 
 また、下記に今回のプロジェクトのリポジトリも共有しておきます。
+
 https://github.com/fujisawaryohei/rails-nuxt-todo-app
 
 ## 今回の流れ
