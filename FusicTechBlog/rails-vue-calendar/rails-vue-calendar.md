@@ -2,7 +2,8 @@
 
 ## 今回作成したアプリ
 
-![todo-app-nuxt](./images/todo-app-demo1.gif "app-demo")
+![todo-app-nuxt](./images/todo-app-demo1.gif "app-demo1")
+![todo-app-nuxt](./images/todo-app-demo2.gif "app-demo2")
 
 ## 今回のファイル構成
 
