@@ -62,6 +62,9 @@ todo-calendar/.gitignore
 
 ### dockerfile 作成
 
+今回の Rails における Docker の運用方針は Gemfile を参照して、予めイメージビルド時に Gem をンストールしておきます。  
+その後、`docker-compose up`コマンドでコンテナ起動時に随時追加した差分の Gem があれば bundle install するといった方針にします。
+
 todo-calendar/dockerfile
 
 ```docker
@@ -85,9 +88,12 @@ ADD . /app
 ### docker-compose.yml を作成
 
 作成したディレクトリで docker-compose.yml ファイルにコンテナの構成を定義します。  
-`networks`では、サブネット 172.10.0.0/24 の Docker ネットワークを定義しています。  
-`backend`では、先程定義した Rails イメージを`command`で指定しているコマンドでコンテナとして起動するように定義しています。またその際コンテナに割り当てられるプライベート IP アドレスは、`172.10.0.3`になります。  
-`db`では、postgresql11.5 のイメージを基にコンテナを定義しています。
+上記の方針に基づいて、`backend`の`command`では、ボリュームマウントしているカレントディレクトリの 1 つ Gemfile を参照して bundle install をしています。bundle install 後に、Rails サーバーが起動するようになっています。
+このようにすることで、随時追加した Gem の差分のみコンテナ起動時にインストールできるため、起動がスムーズになります。  
+また今回の運用方針に基づくと、ボリュームマウントの対象となる必要があるのは、アプリケーションのコードと Gemfile です。
+マウント対象をカレントディレクトリで指定しているため、このままではマウントする必要のない`vendor`もボリュームマウント対象となってしまいます。
+vendor ディレクトリ以下には、Gem の実体が保存されているため、この状態だとコンテナ起動に時間がかかってしまいます。
+ですので、`/app/vendor`のように指定して、ボリュームマウントの対象から外しておきます。同じように`.git`, `tmp`もボリュームマウントの対象から外しておきます。
 
 ```docker
 version: "3"
@@ -218,8 +224,7 @@ RUN yarn install
 
 ### docker-compose.yml を編集
 
-先程作成した docker-compose.yml ファイルに下記を追加してください。  
-先程作成したイメージを基にコンテナ`yarn dev`で起動して、`172.10.0.4`のプライベート IP をコンテナに割り当てています。
+先程作成した docker-compose.yml ファイルに下記を追加してください。
 
 ```docker
 frontend:
