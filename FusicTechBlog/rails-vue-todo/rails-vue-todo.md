@@ -729,10 +729,17 @@ frontend/components/TodoCard.vue
           <v-spacer></v-spacer>
           <v-btn depressed color="error" @click="remove()"> 削除する </v-btn>
           <v-btn depressed color="info" @click="toEdit()"> 編集する </v-btn>
-          <v-btn v-if="!todo.is_done" depressed color="primary" @click="done()">
+          <v-btn
+            v-if="!todo.is_done"
+            depressed
+            color="primary"
+            @click="complete()"
+          >
             完了
           </v-btn>
-          <v-btn v-else depressed color="warning" @click="back()">未完了</v-btn>
+          <v-btn v-else depressed color="warning" @click="incomplete()"
+            >未完了</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-col>
@@ -765,13 +772,13 @@ export default {
     toEdit() {
       this.$router.push(`/todos/${this.todo.id}`);
     },
-    async done() {
+    async complete() {
       await this.$axios.$patch(`/api/v1/todos/${this.todo.id}`, {
         is_done: true,
       });
       window.location.href = process.env.hostUrl + "/todos";
     },
-    async back() {
+    async incomplete() {
       await this.$axios.$patch(`/api/v1/todos/${this.todo.id}`, {
         is_done: false,
       });
@@ -839,6 +846,7 @@ export default {
 ### フォーム画面作成
 
 次に、フォーム画面のコンポーネントを作成します。
+バリデーションエラーメッセージの表示は今回、雑に`window.alert`で表示させていますが、好みで編集してください。
 
 frontend/components/TodoForm.vue
 
@@ -972,11 +980,31 @@ export default {
     },
     create(params) {
       this.$axios.post("/api/v1/todos", params).then((res) => {
+        if (res.data) {
+          const errorMessage = `
+            下記の部分を確認してください. \n
+            タイトル: ${res.data.title}
+            日付: ${res.data.date}
+            時間: ${res.data.time}
+            内容: ${res.data.content} 
+          `;
+          return window.alert(errorMessage);
+        }
         this.$router.push("/todos");
       });
     },
     update(params, id) {
       this.$axios.patch(`/api/v1/todos/${id}`, params).then((res) => {
+        if (res.data) {
+          const errorMessage = `
+            下記の部分を確認してください. \n
+            タイトル: ${res.data.title}
+            日付: ${res.data.date}
+            時間: ${res.data.time}
+            内容: ${res.data.content} 
+          `;
+          return window.alert(errorMessage);
+        }
         this.$router.push("/todos");
       });
     },
