@@ -1,4 +1,7 @@
-# Rails + Nuxt で Todo アプリを Docker 環境 で開発する
+# Rails + Nuxt で Todo アプリを Docker 環境で開発する
+
+こんにちは。Fusic の藤澤です。  
+今回は、バックエンドに Rails の API、フロントエンドに Nuxt という構成で Todo アプリを Docker 環境で作って見ました。最終的に AWS Fargate へのデプロイまで行い、記事にする予定ですが、その部分を含むとボリュームが大きくなってしまうためこの記事では環境構築と開発の流れについて触れています。また、最後まで見ていただくと下記のデモがローカルで動くようになってますので、少し長くなりますがお時間ある時に読んでみてください。
 
 ## 今回作成したアプリ
 
@@ -38,7 +41,7 @@ https://github.com/fujisawaryohei/rails-nuxt-todo-app
 bundle init
 ```
 
-作成された Gemfile で`rails`の部分のコメントアウトをします。
+作成された Gemfile で`rails`の部分のコメントアウトを外します。
 
 ```rb
 # frozen_string_literal: true
@@ -122,7 +125,10 @@ services:
     container_name: todo-app-backend
     build: .
     image: todo-app-backend
-    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    command: |
+      bash -c "bundle install -j4
+      rm -f tmp/pids/server.pid &&
+      bundle exec rails s -p 4000 -b '0.0.0.0'"
     tty: true
     stdin_open: true
     volumes:
@@ -140,10 +146,10 @@ services:
     depends_on:
       - db
     ports:
-      - 5000:3000 # ポートフォワード
+      - 4000:4000
     networks:
       app_net:
-        ipv4_address: '172.10.0.3'
+        ipv4_address: "172.10.0.3"
 
 networks:
   app_net:
@@ -152,8 +158,10 @@ networks:
       driver: default
       config:
         - subnet: 172.10.0.0/24
+
 volumes:
   postgres_data:
+  bundle_data:
 ```
 
 docker-compose build コマンドで dockerfile で定義したイメージのビルドを行って下さい。
@@ -172,7 +180,7 @@ docker-compose up
 docker-compose exec backend bin/rails db:create
 ```
 
-現在ポート 5000 でポートフォワーディングしているため、`localhost:5000`にアクセスすると下記のような画面になります。
+現在ポート 4000 でポートフォワーディングしているため、`localhost:4000`にアクセスすると下記のような画面になります。
 これで Rails の開発環境構築ができました。
 
 ![helloworl-rails](./images/2020-11-30-RailsHelloWorld.png "Qiita")
@@ -589,7 +597,7 @@ export default {
 
 まずはデフォルト画面を作成していきます。
 
-frontend/components/SideNav.ue
+frontend/components/SideNav.vue
 
 ```vue
 <template>
@@ -635,9 +643,12 @@ export default {
 上記はサイドナビゲーションメニューのコンポーネントになっています。
 [v-navigation-drawer](https://vuetifyjs.com/en/components/navigation-drawers/) という Vuetify のコンポーネントを使用しています。また drawer という data プロパティがサイドナビゲーションの開閉状態を管理しています。今回は、`default.vue`が親コンポーネントで`SideNav.vue`が子要素の関係に当たります。ですので、状態管理を親コンポーネントで行い、子コンポーネントに Props で渡しています。そして、子コンポーネント側で v-model を使用して状態を変更せずに、子コンポーネント側から親コンポーネントへ emit して親コンポーネントで状態を変更しています。
 
+上記で作成したサイドナビゲーションのコンポーネントをデフォルト画面である、`default.vue`でインポートして、ヘッダー部分の`v-app-bar`内で呼び出してあげます。
+`v-app-bar`はヘッダー部分、`v-main`が main 部分、`v-footer`がフッター部分になります。
+
 frontend/layouts/default.vue
 
-```vue
+```js
 <template>
   <v-app dark>
     <side-nav-menu :drawer="drawer" :items="loggedInItems" />
@@ -695,7 +706,7 @@ export default {
 
 frontend/components/TodoTop.vue
 
-```vue
+```js
 <template>
   <v-row>
     <v-col cols="7">
@@ -721,7 +732,7 @@ export default {
 
 frontend/components/TodoCard.vue
 
-```vue
+```js
 <template>
   <v-row>
     <v-col cols="12">
@@ -804,7 +815,7 @@ export default {
 
 frontend/pages/todos/index.vue
 
-```vue
+```js
 <template>
   <div>
     <todo-top @switchTaskStatus="switchTaskStatus" />
@@ -854,7 +865,7 @@ export default {
 
 frontend/components/TodoForm.vue
 
-```vue
+```js
 <template>
   <v-row>
     <v-col cols="12">
@@ -990,7 +1001,7 @@ export default {
             タイトル: ${res.data.title}
             日付: ${res.data.date}
             時間: ${res.data.time}
-            内容: ${res.data.content} 
+            内容: ${res.data.content}
           `;
           return window.alert(errorMessage);
         }
@@ -1005,7 +1016,7 @@ export default {
             タイトル: ${res.data.title}
             日付: ${res.data.date}
             時間: ${res.data.time}
-            内容: ${res.data.content} 
+            内容: ${res.data.content}
           `;
           return window.alert(errorMessage);
         }
@@ -1021,7 +1032,7 @@ export default {
 
 frontend/pages/todo.vue
 
-```vue
+```js
 <template>
   <todo-form />
 </template>
@@ -1037,7 +1048,7 @@ export default {
 
 frontend/pages/\_id.vue
 
-```vue
+```js
 <template>
   <!-- todoのidを子コンポーネントに渡す -->
   <todo-form :todo-id="$route.params.id" />
