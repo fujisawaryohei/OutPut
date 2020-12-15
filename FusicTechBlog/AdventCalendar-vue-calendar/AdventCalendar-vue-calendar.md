@@ -36,15 +36,14 @@ sls create --template aws-go
 ディレクトリ構成は下記のような形に編集します。
 
 ```
-├── todo-app
-  ├── Makefile
-  └── README.md
-  └── putTodo
-    └── main.go
-  └── getTodo
-    └── main.go
-  └── bin
-  └── serverless.yml
+├── Makefile
+├── README.md
+├── getTodo
+│   └── main.go
+├── putTodo
+│   └── main.go
+└── bin
+└── serverless.yml
 ```
 
 合わせて`Makefile`を編集します。  
