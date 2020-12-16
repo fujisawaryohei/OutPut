@@ -41,7 +41,7 @@ https://github.com/fujisawaryohei/go-serverless-for-vue-calendar
 
 リポジトリ: https://github.com/fujisawaryohei/vue-calendar
 
-## Serverless Framewok を使用してテンプレート作成
+## ServerlessFramewok のテンプレート作成
 
 今回は、Golang を使用して実装します。
 ServerlessFramework には予め言語やプロバイダの組み合わせによってテンプレートが用意されています。
@@ -81,7 +81,7 @@ deploy: clean build
 	sls deploy --verbose
 ```
 
-## Serverless FrameWork の編集
+## serverless.yml の編集
 
 serverless.yml の編集をします。
 ServerlessFramework を触る時、API GateWay の Lambda プロキシ統合の設定が直感的にコード化できて良いなぁと感じます。
