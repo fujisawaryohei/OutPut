@@ -1,13 +1,22 @@
 # Golang + ServerlessFramework (APIGateway + Lambda + DynamoDB)を使用して簡易的なアプリを作ってみた
 
+この記事は [Fusic Advent Calender](https://qiita.com/advent-calendar/2020/fusic)の 17 日目の記事です。
+
+昨日は夛田君の[ちゃんと TypeScript で async/await を書く](https://tech.fusic.co.jp/posts/2020-12-15-typescript-async-await/)でした。  
+僕は、社会人になる前まで非同期処理を Async/Await を知らずに Promise を使用して書いてた勢なので、Async/Await を教えてもらった時は感動した覚えがあります。  
+シンプルな記述で非同期処理を同期的に書けるのが魅力的ですよね。
+
+さて今回ですが、下記のようなカレンダーアプリの Todo 機能のバックエンドを API Gateay + Lambda + DynamoDB のサーバーレス構成で作りました。
+
 ## デモ画面
 
-今回、このようなカレンダーアプリの Todo 機能のバックエンドを API Gateay + Lambda + DynamoDB のサーバーレス構成で作りました。
+日付の部分を予め id 属性に振り分けておき、その id 属性を動的に取得して GET や POST をするようにしています。
+
 ![vue-calendar-demo](./images/2020-12-17-vue-calendar.gif "app-demo1")
 
 ## 構成図
 
-一応構成図です。
+![aws_architecture](./images/aws_architecture2020-12-17.png "architecture")
 
 ## 仕様
 
@@ -28,10 +37,9 @@ https://github.com/fujisawaryohei/go-serverless-for-vue-calendar
 ### Client
 
 弊社では研修でカレンダーアプリを作成します。僕は Vue.js でカレンダーを作りました。  
-今回、研修で作成したカレンダーアプリのバックエンドをサーバーレス構成でつくります。
+今回、研修で作成したカレンダーアプリをクライアントとして、 Todo データを永続化するためのバックエンドをサーバーレス構成でつくります。
 
-リポジトリ
-https://github.com/fujisawaryohei/vue-calendar
+リポジトリ: https://github.com/fujisawaryohei/vue-calendar
 
 ## Serverless Framewok を使用してテンプレート作成
 
@@ -76,8 +84,8 @@ deploy: clean build
 ## Serverless FrameWork の編集
 
 serverless.yml の編集をします。
-ServerlessFramework を触る時、API GateWay + Lambda の構成が直感的にコード化できて良いなぁと感じます。
-ここで CORS の設定をしておく必要があることに注意してください。`cors: true` を `http` 以下に記載してください。
+ServerlessFramework を触る時、API GateWay の Lambda プロキシ統合の設定が直感的にコード化できて良いなぁと感じます。
+下記の`serverless.yml`の編集ですが、 CORS の設定をしておく必要があることに注意してください。`cors: true` を `http` 以下に記載してください。
 DynamoDB は上記の仕様に基づいて`resouces`以下で定義しています。
 
 ```yml
@@ -251,6 +259,15 @@ func main() {
 
 ```
 
+ここまで完了したら一度デプロイしていきます。
+
+```
+make deploy
+```
+
+`make deploy`コマンドを実行すると、`Makefile`に記載されている通り、上記の Go のプログラムを Linux マシン向けにクロスコンパイルを行います。  
+そして、コンパイル後の実行ファイルを`sls deploy --verbose`コマンドでデプロイします。
+
 保存されるかを確認するため、一度`curl`コマンドでテストをします。AWS マネジメントコンソールから APIGateway を開きます。
 サイドメニューの「ステージ」を選択するとステージ一覧画面に行きます。ステージ一覧画面からステージを選択すると、URL の呼び出しというところに
 APIGateway の DNS 名が表示されているのでこちらを使用して`curl`します。
@@ -382,6 +399,13 @@ func main() {
 ```
 
 以上で、Lambda の getTodo 関数ができました。
+
+再度デプロイします。
+
+```
+make deploy
+```
+
 検索できているかを確認するため、同じくこちらも`curl`コマンドでテストをします。
 
 ```
@@ -394,5 +418,5 @@ curl APIGatewayのDNS名/todo?timestamp=2020-12-17
 [{"timestamp":"2020-12-17","content":"マスタリングTCP/IPを読む"}]
 ```
 
-前回、作成した Todo アプリのデプロイが完了次第、また記事を書きます。
+前回、作成した Todo アプリのデプロイが完了次第、また記事を書きます。  
 最後まで見て頂きありがとうございました。
