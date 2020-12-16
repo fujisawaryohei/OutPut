@@ -1,8 +1,6 @@
-# Golang + ServerlessFramework (APIGateway + Lambda + DynamoDB)を使用して簡易的なアプリを作ってみた
-
 この記事は [Fusic Advent Calender](https://qiita.com/advent-calendar/2020/fusic)の 17 日目の記事です。
 
-昨日は夛田君の[ちゃんと TypeScript で async/await を書く](https://tech.fusic.co.jp/posts/2020-12-15-typescript-async-await/)でした。  
+昨日は夛田君の[ちゃんと TypeScript で async/await を書く](https://tech.fusic.co.jp/posts/2020-12-15-typescript-async-await/)という記事でした。\
 僕は、社会人になる前まで非同期処理を async/await を知らずに Promise を使用して書いてた勢なので、async/await を教えてもらった時は感動した覚えがあります。  
 シンプルな記述で非同期処理を同期的に書けるのが魅力的ですよね。
 
@@ -40,12 +38,18 @@ https://github.com/fujisawaryohei/go-serverless-for-vue-calendar
 
 ### Client
 
-弊社では研修でカレンダーアプリを作成します。僕は Vue.js でカレンダーを作りました。  
+弊社では研修でカレンダーアプリを作成します。僕は Vue.js でカレンダーを作りました。\
 今回、研修で作成したカレンダーアプリをクライアントとして、 Todo データを永続化するためのバックエンドをサーバーレス構成でつくります。
 
 リポジトリ: https://github.com/fujisawaryohei/vue-calendar
 
 ## ServerlessFramewok のテンプレート作成
+
+ServerlessFramework をインストールしてください。
+
+```
+npm i -g serverless
+```
 
 今回は、Golang を使用して実装します。
 ServerlessFramework には予め言語やプロバイダの組み合わせによってテンプレートが用意されています。
@@ -68,7 +72,8 @@ sls create --template aws-go
 └── serverless.yml
 ```
 
-合わせて`Makefile`を編集します。  
+合わせて`Makefile`を編集します。
+
 Makefile
 
 ```:shell
@@ -178,7 +183,7 @@ resources:
 ### POST /todo
 
 `putTodo/main.go`に APIGateway で受け取ったリクエストボディを Lambda に渡して PutItem オペレーションで DynamoDB へ保存する処理を追加します。
-`github.com/aws/aws-sdk-go/service/events`パッケージを使用することで APIGateway で受け取ったリクエストを Lambda に渡すことができます。  
+`github.com/aws/aws-sdk-go/service/events`パッケージを使用することで APIGateway で受け取ったリクエストを Lambda に渡すことができます。
 処理の流れとしては以下のようになります。
 
 1. APIGateway から受け取ったリクエストをマッピングする構造体を定義
@@ -187,7 +192,7 @@ resources:
 4. 作成した PutItemInput を使用して PutItem オペレーションの実行
 
 Response 構造体を作成する時に注意すべき事として、CORS の許可があります。
-`"Access-Control-Allow-Origin": "*"` をのみをレスポンスヘッダーに加える事でブラウザからシンプルリクエストとしてリクエストを送る事ができます。
+`"Access-Control-Allow-Origin": "*"` のみをレスポンスヘッダーに加える事でブラウザからシンプルリクエストとしてリクエストを送る事ができます。
 
 putTodo/main.go
 
@@ -260,7 +265,6 @@ func Hanlder(ctx context.Context, request Request) (Response, error) {
 func main() {
 	lambda.Start(Hanlder)
 }
-
 ```
 
 ここまで完了したら一度デプロイしていきます。
@@ -269,7 +273,7 @@ func main() {
 make deploy
 ```
 
-`make deploy`コマンドを実行すると、`Makefile`に記載されている通り、上記の Go のプログラムを Linux マシン向けにクロスコンパイルを行います。  
+`make deploy`コマンドを実行すると、`Makefile`に記載されている通り、上記の Go プログラムを Linux マシン向けにクロスコンパイルを行います。
 そして、コンパイル後の実行ファイルを`sls deploy --verbose`コマンドでデプロイします。
 
 保存されるかを確認するため、一度`curl`コマンドでテストをします。AWS マネジメントコンソールから APIGateway を開きます。
@@ -280,7 +284,7 @@ APIGateway の DNS 名が表示されているのでこちらを使用して`cur
 curl -X POST -H "Content-Type: application/json" -d '{"timestamp":"2020-12-17", "content":"マスタリングTCP/IPを読む"}' APIGatewayのDNS名/todo
 ```
 
-実行すると、下記のレスポンスが返ってくれば成功です。DynamoDB に保存されているはずなので、確認してみて下さい。
+実行して下記のレスポンスが返ってくれば成功です。DynamoDB に保存されているはずなので、確認してみて下さい。
 
 ```
 保存しました
@@ -290,7 +294,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"timestamp":"2020-12-17", 
 
 ### GET /todo
 
-今回は、`timestamp` のパーティションキーを使用した検索をするため、クライアントから検索したいキーを指定できるようにクエリ文字列を受け取る設定をしています。  
+今回は、`timestamp` のパーティションキーを使用した検索をするため、クライアントから検索したいキーを指定できるようにクエリ文字列を受け取る設定をしています。\
 下記のように`timestamp`というクエリ文字列を取得するように指定します。
 
 serverless.yml
@@ -422,12 +426,12 @@ curl APIGatewayのDNS名/todo?timestamp=2020-12-17
 [{"timestamp":"2020-12-17","content":"マスタリングTCP/IPを読む"}]
 ```
 
-リソースが残り続けると料金がかかるのでこれらのリソースをお掃除を忘れないようにしましょう。
+リソースが残り続けると料金がかかるのでこれらのリソースの削除を忘れないようにしましょう。  
 下記のコマンドでデプロイしたリソースが削除されます。
 
 ```
 sls remove -l
 ```
 
-コマンド一発でデプロイが出来て、リソースの削除までサクッと行えちゃうので ServerlessFramework とても開発が捗るなぁと感じました。  
+コマンド一発でデプロイが出来て、リソースの削除までサクッと行えちゃうのでとても開発が捗るなぁと感じました。
 最後まで見て頂きありがとうございました。
