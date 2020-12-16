@@ -1,4 +1,13 @@
-# Go + ServerlessFramework (APIGateway + Lambda + DynamoDB)を使用して GET と POST をやってみた
+# Go + ServerlessFramework (APIGateway + Lambda + DynamoDB)を使用して簡易的なアプリを作ってみた
+
+## デモ画面
+
+今回、このようなカレンダーアプリの Todo 機能のバックエンドを API Gateay + Lambda + DynamoDB のサーバーレス構成で作りました。
+![vue-calendar-demo](./images/2020-12-17-vue-calendar.gif "app-demo1")
+
+## 構成図
+
+一応構成図です。
 
 ## 仕様
 
@@ -8,8 +17,8 @@ https://github.com/fujisawaryohei/go-serverless-for-vue-calendar
 
 ### API Gateway（Lambda プロキシ統合を使用）
 
-- GET /todo
-- POST /todo
+- GET /todo 　 DynamoDB の検索で使用するキーの値をクエリ文字列を使用してクライアント側で指定して検索結果を返す API
+- POST /todo 　 DynamoDB に保存する API
 
 ### DynamoDB
 
@@ -19,14 +28,15 @@ https://github.com/fujisawaryohei/go-serverless-for-vue-calendar
 ### Client
 
 弊社では研修でカレンダーアプリを作成します。僕は Vue.js でカレンダーを作りました。  
-今回、研修で作成したカレンダーアプリのバックエンドをサーバーレス構成でつくります。  
+今回、研修で作成したカレンダーアプリのバックエンドをサーバーレス構成でつくります。
+
 リポジトリ
 https://github.com/fujisawaryohei/vue-calendar
 
 ## serverless framewok を使用してテンプレート作成
 
 今回は、Golang を使用して実装します。
-ServerlessFramework には予め言語やプロバイダ毎にテンプレートが用意されています。
+ServerlessFramework には予め言語やプロバイダの組み合わせによってテンプレートが用意されています。
 下記のコマンドを実行してテンプレートを作成してください。
 
 ```
@@ -159,7 +169,7 @@ resources:
 `github.com/aws/aws-sdk-go/service/events`パッケージを使用することで APIGateway で受け取ったリクエストを Lambda に渡すことができます。  
 処理の流れとしては以下のようになります。
 
-1. APIGateway から受け取ったリクエストマッピングする構造体を定義
+1. APIGateway から受け取ったリクエストをマッピングする構造体を定義
 2. 受け取ったリクエストボディを定義した構造体にマッピング
 3. マッピングした構造体のフィールドを使用して PutItemInput を作成
 4. 作成した PutItemInput を使用して PutItem オペレーションの実行
@@ -246,7 +256,7 @@ func main() {
 APIGateway の DNS 名が表示されているのでこちらを使用して`curl`します。
 
 ```
-curl -X POST -H "Content-Type: application/json" -d '{"timestamp":"2020-12-17", "content":"生田絵梨花ちゃんののぎおび配信を見る"}' APIGatewayのDNS名/todo
+curl -X POST -H "Content-Type: application/json" -d '{"timestamp":"2020-12-17", "content":"マスタリングTCP/IPを読む"}' APIGatewayのDNS名/todo
 ```
 
 実行すると、下記のレスポンスが返ってくれば成功です。DynamoDB に保存されているはずなので、確認してみて下さい。
@@ -381,7 +391,7 @@ curl APIGatewayのDNS名/todo?timestamp=2020-12-17
 返ってきましたら完了です。
 
 ```
-[{"timestamp":"2020-12-17","content":"生田絵梨花ちゃんののぎおび配信を見る"}]
+[{"timestamp":"2020-12-17","content":"マスタリングTCP/IPを読む"}]
 ```
 
 前回、作成した Todo アプリのデプロイが完了次第、また記事を書きます。
