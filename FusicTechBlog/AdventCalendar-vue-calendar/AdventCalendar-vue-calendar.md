@@ -3,7 +3,7 @@
 この記事は [Fusic Advent Calender](https://qiita.com/advent-calendar/2020/fusic)の 17 日目の記事です。
 
 昨日は夛田君の[ちゃんと TypeScript で async/await を書く](https://tech.fusic.co.jp/posts/2020-12-15-typescript-async-await/)でした。  
-僕は、社会人になる前まで非同期処理を Async/Await を知らずに Promise を使用して書いてた勢なので、Async/Await を教えてもらった時は感動した覚えがあります。  
+僕は、社会人になる前まで非同期処理を async/await を知らずに Promise を使用して書いてた勢なので、async/await を教えてもらった時は感動した覚えがあります。  
 シンプルな記述で非同期処理を同期的に書けるのが魅力的ですよね。
 
 さて今回ですが、下記のようなカレンダーアプリの Todo 機能のバックエンドを API Gateay + Lambda + DynamoDB のサーバーレス構成で作りました。
