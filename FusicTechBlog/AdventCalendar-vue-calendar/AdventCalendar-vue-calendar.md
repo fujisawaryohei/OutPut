@@ -1,4 +1,4 @@
-# Go + ServerlessFramework (APIGateway + Lambda + DynamoDB)を使用して簡易的なアプリを作ってみた
+# Golang + ServerlessFramework (APIGateway + Lambda + DynamoDB)を使用して簡易的なアプリを作ってみた
 
 ## デモ画面
 
@@ -15,7 +15,7 @@
 
 https://github.com/fujisawaryohei/go-serverless-for-vue-calendar
 
-### API Gateway（Lambda プロキシ統合を使用）
+### APIGateway（Lambda プロキシ統合を使用）
 
 - GET /todo 　 DynamoDB の検索で使用するキーの値をクエリ文字列を使用してクライアント側で指定して検索結果を返す API
 - POST /todo 　 DynamoDB に保存する API
@@ -33,7 +33,7 @@ https://github.com/fujisawaryohei/go-serverless-for-vue-calendar
 リポジトリ
 https://github.com/fujisawaryohei/vue-calendar
 
-## serverless framewok を使用してテンプレート作成
+## Serverless Framewok を使用してテンプレート作成
 
 今回は、Golang を使用して実装します。
 ServerlessFramework には予め言語やプロバイダの組み合わせによってテンプレートが用意されています。
