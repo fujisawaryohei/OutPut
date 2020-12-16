@@ -1,3 +1,5 @@
+# Golang + ServerlessFramework (APIGateway + Lambda + DynamoDB)を使用して簡易的なアプリを作ってみた
+
 この記事は [Fusic Advent Calender](https://qiita.com/advent-calendar/2020/fusic)の 17 日目の記事です。
 
 昨日は夛田君の[ちゃんと TypeScript で async/await を書く](https://tech.fusic.co.jp/posts/2020-12-15-typescript-async-await/)という記事でした。\
