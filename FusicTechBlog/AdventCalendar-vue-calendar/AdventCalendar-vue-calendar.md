@@ -26,10 +26,10 @@ https://github.com/fujisawaryohei/go-serverless-for-vue-calendar
 
 ### APIGateway（Lambda プロキシ統合を使用）
 
-| HTTP メソッド | パス  | 仕様                                                                                            |
-| ------------- | ----- | ----------------------------------------------------------------------------------------------- |
-| GET           | /todo | DynamoDB の検索で使用するキーの値をクエリ文字列を使用してクライアント側で指定して検索結果を返す |
-| POST          | /todo | DynamoDB に保存する API                                                                         |
+| HTTP メソッド | パス  | 仕様                                     |
+| ------------- | ----- | ---------------------------------------- |
+| GET           | /todo | クエリ文字列で DynamoDB の検索を行う API |
+| POST          | /todo | DynamoDB に保存する API                  |
 
 ### DynamoDB
 
