@@ -1,6 +1,6 @@
-# REST と Web API の設計について
+# REST and Web API Design
 
-## REST とは
+## REST
 
 REST とは、Representation State Transfer の略。具体的には分散型システムにおける設計原則群の事を指す。
 
@@ -141,6 +141,8 @@ Good case -> https://api.example.com/items/12345
 例えば、GET がクエリパラメーターなのに POST がパスパラメーターといった操作。
 POST がパスパラメーターであれば、GET はパスパラメーターにする。
 
+# Web API design
+
 ## データフォーマットの指定方式
 
 データフォーマットには 3 種類のデータフォーマットが存在する。
@@ -280,7 +282,7 @@ API 化により、簡単に大量アクセスするプログラムが書ける�
 
 逆に、サービス利用者が多く自社にとって優良顧客である場合などのケースが会った場合のアクセス元の制限緩和についても WebAPI 設計においては考える必要がある。
 
-### キャッシュ制御
+## キャッシュ制御
 
 - Expires
 - Cache-control + Date  
@@ -290,3 +292,69 @@ API 化により、簡単に大量アクセスするプログラムが書ける�
   Last-Modified にリソース最終更新日時を指定
   ETag に特定バージョンを示す文字列を指定。  
   → コンテンツのハッシュ、バージョン番号、最終更新日時のハッシュ
+
+## セキュリティ
+
+### XSS
+
+内容: 悪意のあるユーザーが正規のサイトに不正なスクリプトを埋め込み、そのサイトのユーザー情報等を抜き出す攻撃手法。  
+対策:
+
+1.  レスポンスヘッダーで X-XSS-Protection を"1"に指定して XSS フィルタリングを有効化。
+2.  レスポンスヘッダーで X-Frame-Options を"DENY"に指定して iframe タグ呼び出しを拒否。
+3.  レスポンスヘッダーで X-Content-Type-Options を"noshift"で指定して IE 脆弱性対応。
+
+X-XSS-Protection 詳細
+
+> Chrome は XSS Auditor を削除しました
+> Firefox は対応しておらず、 X-XSS-Protection を今後も実装しません
+> Edge は XSS filter を廃止しました
+> つまり、レガシーブラウザをサポートする必要がない場合は、代わりに Content-Security-Policy を使用し unsafe-inline を許可しないことをお勧めします。
+
+とのことなので、古いブラウザに対応する必要がある場合にのみ、X-XSS-Protection を指定する。
+参考: https://developer.mozilla.org/ja/docs/Web/HTTP/Headers/X-XSS-Protection
+
+そうではない場合は、X-XSS-Protection の代わりに、content-security-policy を"unsafe-inline"にする。
+参考: https://developer.mozilla.org/ja/docs/Web/HTTP/CSP
+
+X-Frame-Options 詳細
+
+- X-Frame-Options を指定すると何が嬉しいのか  
+  https://nulab.com/ja/blog/typetalk/measure-clickjacking/
+
+- X-Frame-Options に関しては、あくまで外部サイトから iframe でページを埋め込まれた際のクリックジャッキング攻撃に対する対策として行うものなので、HTML を返却するサーバーを作成することが前提。すなわち WebAPI では指定する必要はなさそう。
+
+X-Content-Type-Options 詳細  
+参考: https://developer.mozilla.org/ja/docs/Web/HTTP/Headers/X-Content-Type-Options
+
+### CSRF
+
+内容:　本来拒否する必要があるアクセス元からのリクエストを処理してしまう問題
+対策:
+
+1. 許可しないアクセス元からのリクエストを拒否。
+
+- システム単位で実行可否判断を行う場合: クライアントにリクエストヘッダーに X-API-KEY を指定させる。
+- ユーザー単位で実行可否判断を行う場合: クライアントにリクエストヘッダーに Authentication を指定させる。
+
+2. 攻撃者に推測されにくいトークンの発行/照合処理を実装。
+
+- クライアントにリクエストヘッダーに X-CSRF-TOKEN を指定させる。サーバー側で X-CSRF-TOKEN を取り出して、照合処理をする。
+
+### HTTP
+
+内容: 通信経路が暗号化されないので盗聴されやすい
+対策:
+
+1. 常時 HTTPS を利用した通信を行う。
+
+- SSL: 安全に通信を行うためのプロトコル。2015 年に使用禁止。
+- TLS: 安全に通信を行うためのプロトコル。SSL の後継。
+- HTTPS: HTTPS + SSL/TLS。Web で安全に通信を通信するプロトコル。
+
+### JWT
+
+内容: クライアント側で編集/参照が簡単にできるため、サーバー側の検証が不十分だと改ざんされた情報を正規に受け入れてしまう。
+対策:
+
+1. ヘッダーの alg に"none"以外を指定して署名を暗号化する。
