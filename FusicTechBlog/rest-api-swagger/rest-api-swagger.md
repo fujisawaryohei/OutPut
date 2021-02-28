@@ -1,10 +1,10 @@
-# REST と RESTful API について
+# REST と Web API について
 
-## REST API とは
+## REST とは
 
 REST とは、Representation State Transfer の略。具体的には分散型システムにおける設計原則群の事を指す。
 
-RESTful API は、上記の REST の設計原則郡を満す Web API。  
+俗に言う、RESTful API は、上記の REST の設計原則郡を満す Web API。  
 URL を使用してリソースを解釈し、クラウドコンピューティングのアプリケーションやサービスを利用するビジネスのための優れた統合ソリューションを作る。
 
 ## REST のメリット
@@ -140,3 +140,86 @@ Good case -> https://api.example.com/items/12345
 
 例えば、GET がクエリパラメーターなのに POST がパスパラメーターといった操作。
 POST がパスパラメーターであれば、GET はパスパラメーターにする。
+
+## データフォーマットの指定方式
+
+データフォーマットには 3 種類のデータフォーマットが存在する。
+
+- XML content-type: application/xml
+- JSON content-type: application/json
+- JSONP content-type: application/javascript
+
+基本的に Web API では、JSON を返すようにする。  
+またデータフォーマットの指定方式は 3 つ存在する。
+
+1. クエリパラメーター
+
+```
+https://api.example.com/items?format=json
+```
+
+2. 拡張子
+
+```
+https://api.example.com/items.json
+```
+
+3. リクエストヘッダー
+
+```
+https://api.example.com/items
+
+http header
+content-type: applicaition/json
+```
+
+WebAPI では基本的にリクエストヘッダーでフォーマットを指定するようにする。
+
+## データの内部構造
+
+1. データの内部構造にエンベローブを使用しない。→ レスポンスヘッダーと内容が重複するため。
+   _エンベローブとはレスポンスボディのメタ情報のことを指す。_
+
+2. オブジェクトはなるべくフラットにする。
+
+```js
+// ↓だめなケース
+{
+ "id": "12345",
+ "name": "Fujisawa ryohei",
+ "profile": {
+   "birthday": "3/23",
+   "gender": "male"
+ }
+}
+// ↓良いケース
+{
+ "id": "12345",
+ "name": "Fujisawa ryohei",
+ "birthday": "3/23",
+ "gender": "male"
+}
+```
+
+3. プロパティの命名規則は API 全体で統一する。  
+   プロパティの表記方法には 3 種類存在する。
+
+- スネークケース
+- キャメルケース
+- パスカルケース
+  基本的に、JSON はキャメルケースを使用する。
+
+4. 日付には RFC3339（W3C-DTF）形式を使用する。  
+   インターネットで標準で使用されているため。
+
+5. 大きな整数（64bit 整数）は文字列で返す。  
+   JavaScript では`2^53 - 1`までしか整数が扱えないため、これより大きな整数になりうる可能性も考えて、大きな整数は文字列で返すほうが良い。
+
+## エラー表現
+
+- エラーメッセージを含めよう。  
+  エラーかどうかはリクエストヘッダーのステータスコードでわかる。
+  しかし、何がエラーなのかはわからん。→ エラー詳細メッセージをレスポンスボディに含めよう。
+- HTML を返さないようにしよう。  
+  クライアントが受け付けているのは、HTML ではなく JSON なため JSON を返すようにする。
+- サービス閉塞時には、ステータスコード 503 で、リクエストヘッダーに Retry After を加えよう。
