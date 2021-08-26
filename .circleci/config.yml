@@ -17,5 +17,11 @@ jobs:
             - ~/.cache/yarn
           key: OutPut-{{ checksum "yarn.lock" }}
       - run:
-          name: Lint FusicTechblog/rails-vue-calendar/rails-vue-calendar.md
+          name: Rails + Nuxt で Todo アプリを Docker 環境で開発する
           command: yarn textlint ./FusicTechBlog/rails-vue-calendar/rails-vue-calendar.md --config ./.textlintrc
+      - run:
+          name: Golang + ServerlessFramework (APIGateway + Lambda + DynamoDB)を使用して簡易的なアプリを作ってみた
+          command: yarn textlint ./FusicTechBlog/AdventCalendar-vue-calendar/AdventCalendar-vue-calendar.md --config ./.textlintrc
+      - run:
+          name: Lint FusicTechblog/WebAPIdesign.md
+          command: yarn textlint ./FusicTechBlog/webAPIdesign/webAPIdesign.md --config ./.textlintrc
