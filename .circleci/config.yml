@@ -23,5 +23,9 @@ jobs:
           name: Golang + ServerlessFramework (APIGateway + Lambda + DynamoDB)を使用して簡易的なアプリを作ってみた
           command: yarn textlint ./FusicTechBlog/AdventCalendar-vue-calendar/AdventCalendar-vue-calendar.md --config ./.textlintrc
       - run:
-          name: Lint FusicTechblog/WebAPIdesign.md
+          name: WebAPI Design
+          command: yarn textlint ./FusicTechBlog/webAPIdesign/webAPIdesign.md --config ./.textlintrc
+
+      - run:
+          name: OpenAPI で作成した API 定義書から Mock Server を起動してみた
           command: yarn textlint ./FusicTechBlog/webAPIdesign/webAPIdesign.md --config ./.textlintrc
