@@ -29,3 +29,11 @@ jobs:
       - run:
           name: OpenAPI で作成した API 定義書から Mock Server を起動してみた
           command: yarn textlint ./FusicTechBlog/webAPIdesign/webAPIdesign.md --config ./.textlintrc
+
+      - run:
+          name: Promiseについて雑にまとめたよ
+          command: arn textlint ./FusicTechBlog/Promise/Promise.md --config ./.textlintrc
+
+      - run:
+          name: エラーファーストコールバックについて
+          command: yarn textlint ./FusicTechBlog/ErrorFirstCallBack/errorFirstCallBack.md --config ./.textlintrc
