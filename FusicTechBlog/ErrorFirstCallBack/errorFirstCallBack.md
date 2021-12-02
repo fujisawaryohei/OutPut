@@ -48,15 +48,15 @@ setTimeout(() => {
 ```js
 fs.readFile("./example.txt", (error, data) => {
   if (error) {
-    console.error(error);
+    console.log(error.message);
   } else {
     console.log(data);
   }
 });
 ```
 
-第一引数の`error`の部分には、例えば第一引数で指定したファイルパスのファイルが存在しなかった時等にエラーが発生して、  
-その時の Error オブジェクトが含まれるようになっています。
+第一引数の`error`の部分には、例外が発生した際にスローされる Error オブジェクトが含まれます。  
+今回の例で言うと、例えば第一引数で指定したファイルパスのファイルが存在しなかった時などにスローされます。
 
 第二引数の`data`の部分には、ファイルの読み込みが成功した時の値が入ります。
 
